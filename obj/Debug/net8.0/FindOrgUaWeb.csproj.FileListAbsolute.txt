@@ -44,3 +44,4 @@
 /home/tarachom/Projects/FindOrgUaWeb/obj/Debug/net8.0/FindOrgUaWeb.pdb
 /home/tarachom/Projects/FindOrgUaWeb/obj/Debug/net8.0/FindOrgUaWeb.genruntimeconfig.cache
 /home/tarachom/Projects/FindOrgUaWeb/obj/Debug/net8.0/ref/FindOrgUaWeb.dll
+/home/tarachom/Projects/FindOrgUaWeb/obj/Debug/net8.0/FindOrgUaWeb.sourcelink.json

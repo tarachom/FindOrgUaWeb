@@ -183,10 +183,7 @@
         },
         "runtime": {
           "bin/placeholder/FindOrgUa.dll": {}
-        },
-        "frameworkReferences": [
-          "Microsoft.AspNetCore.App"
-        ]
+        }
       }
     }
   },

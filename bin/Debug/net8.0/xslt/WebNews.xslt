@@ -36,6 +36,7 @@
 				<link rel="stylesheet" href="/bootstrap/bootstrap.min.css" />
 				<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 				<meta http-equiv="Pragma" content="no-cache" />
+				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
 
 				<xsl:if test="normalize-space($code) = ''">

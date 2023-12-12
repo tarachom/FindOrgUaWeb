@@ -23,67 +23,71 @@ namespace FindOrgUa
 
         public static async Task Main()
         {
-            Config.Kernel = new Kernel();
-
-            //Підключення до бази даних та завантаження конфігурації
-            bool result = await Config.Kernel.Open(
-                "/home/tarachom/Projects/FindOrgUa/bin/Debug/net8.0/Confa.xml",
-                "localhost", "postgres", "1", 5432, "find_org_ua");
-
-            if (!result)
+            //Конфігурація
             {
-                Console.WriteLine("Error: " + Config.Kernel.Exception?.Message);
-                return;
+                Config.Kernel = new Kernel();
+
+                //Підключення до бази даних та завантаження конфігурації
+                bool result = await Config.Kernel.Open(
+                    "/home/tarachom/Projects/FindOrgUa/bin/Debug/net8.0/Confa.xml",
+                    "localhost", "postgres", "1", 5432, "find_org_ua");
+
+                if (!result)
+                {
+                    Console.WriteLine("Error: " + Config.Kernel.Exception?.Message);
+                    return;
+                }
+
+                if (await Config.Kernel.DataBase.IfExistsTable("tab_constants"))
+                {
+                    await Config.ReadAllConstants();
+                }
+                else
+                {
+                    Console.WriteLine(@"Error: Відсутня таблиця tab_constants.");
+                    return;
+                }
             }
 
-            if (await Config.Kernel.DataBase.IfExistsTable("tab_constants"))
+            //WEB
             {
-                await Config.ReadAllConstants();
+                var builder = WebApplication.CreateBuilder();
+
+                builder.Services.AddDistributedMemoryCache();
+                builder.Services.AddSession(options =>
+                {
+                    options.Cookie.Name = ".Web.Session";
+                    options.IdleTimeout = TimeSpan.FromSeconds(60);
+                    options.Cookie.IsEssential = true;
+                });
+
+                var app = builder.Build();
+
+                app.UseRouting();
+                app.UseSession();
+
+                /* sitemap для новин */
+                app.MapGet("/sitemap-news", SiteMapNews);
+
+                /* 
+                    /news
+                    /news/01.12.2023
+                    /news/01.12.2023/2
+
+                    також буде працювати Query, але перший варіант має вищий пріоритет
+
+                    /news?date=01.12.2023
+                    /news?date=01.12.2023&page=2
+                */
+                app.MapGet("/news/{date?}/{page:int?}", News);
+
+                /* для перегляду однієї новини */
+                app.MapGet("/news/code-{code}", NewsItem);
+
+                app.MapGet("/personality", Personality);
+
+                app.Run();
             }
-            else
-            {
-                Console.WriteLine(@"Error: Відсутня таблиця tab_constants.");
-                return;
-            }
-
-            Console.WriteLine();
-
-            var builder = WebApplication.CreateBuilder();
-
-            builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddSession(options =>
-            {
-                options.Cookie.Name = ".Web.Session";
-                options.IdleTimeout = TimeSpan.FromSeconds(60);
-                options.Cookie.IsEssential = true;
-            });
-
-            var app = builder.Build();
-
-            app.UseRouting();
-            app.UseSession();
-
-            /* sitemap для новин */
-            app.MapGet("/sitemap-news", SiteMapNews);
-
-            /* 
-                /news
-                /news/01.12.2023
-                /news/01.12.2023/2
-
-                також буде працювати Query, але перший варіант має вищий пріоритет
-
-                /news?date=01.12.2023
-                /news?date=01.12.2023&page=2
-            */
-            app.MapGet("/news/{date?}/{page:int?}", News);
-
-            /* для перегляду однієї новини */
-            app.MapGet("/news/code-{code}", NewsItem);
-
-            app.MapGet("/personality", Personality);
-
-            app.Run();
         }
 
         /// <summary>
@@ -192,8 +196,7 @@ namespace FindOrgUa
             xml += await ВибіркаДатКолиЄНовини_ХМЛ(ДатаДок);
 
             //Актуальна дата новин
-            DateOnly АктуальнаДата = DateOnly.FromDateTime(ДляПодій.АктуальнаДатаПодій_Const != DateTime.MinValue ?
-                ДляПодій.АктуальнаДатаПодій_Const : DateTime.Now);
+            DateOnly АктуальнаДата = await ОтриматиАктуальнуДатуПодій(); ;
 
             Dictionary<string, object> args = new()
             {
@@ -221,12 +224,10 @@ namespace FindOrgUa
             HttpRequest request = context.Request;
 
             //Дата запуску бази
-            DateOnly ПочатокПодій = DateOnly.FromDateTime(ДляПодій.ПочатокПодій_Const != DateTime.MinValue ?
-                ДляПодій.ПочатокПодій_Const : DateTime.Now);
+            DateOnly ПочатокПодій = await ОтриматиДатуПочаткуПодій();
 
             //Актуальна дата новин
-            DateOnly АктуальнаДата = DateOnly.FromDateTime(ДляПодій.АктуальнаДатаПодій_Const != DateTime.MinValue ?
-                ДляПодій.АктуальнаДатаПодій_Const : DateTime.Now);
+            DateOnly АктуальнаДата = await ОтриматиАктуальнуДатуПодій();
 
             DateOnly ПеріодВідбір = АктуальнаДата;
             if (request.Query.ContainsKey("date"))
@@ -430,7 +431,8 @@ WHERE
     date_trunc('day', Рег_Події.period::timestamp) = @ПеріодВідбір
 ORDER BY
     Період DESC
-LIMIT @КількістьНаСторінку OFFSET @Зміщення
+LIMIT @КількістьНаСторінку
+OFFSET @Зміщення
 ";
             Dictionary<string, object> paramQuery = new()
             {
@@ -503,6 +505,10 @@ WHERE
 
             if (ПеріодВідбір != null)
             {
+                /*
+                Вибірка тільки у певному діапазоні
+                */
+
                 DateOnly ДатаПочатокВибірки = ПеріодВідбір.Value.AddDays(-7);
                 DateOnly ДатаКінецьВибірки = ПеріодВідбір.Value.AddDays(7);
 
@@ -534,6 +540,10 @@ WITH Вибірка AS
             }
             else
             {
+                /*
+                Вибірка всього діапазону
+                */
+
                 query = @$"
 WITH Вибірка AS
 (
@@ -587,6 +597,30 @@ FROM
             }
 
             return xml;
+        }
+
+        /// <summary>
+        /// Актуальна дата новин
+        /// </summary>
+        static async ValueTask<DateOnly> ОтриматиАктуальнуДатуПодій()
+        {
+            //Перечитати значення констант
+            await ДляПодій.ReadAll();
+
+            //Актуальна дата новин
+            return DateOnly.FromDateTime(ДляПодій.АктуальнаДатаПодій_Const != DateTime.MinValue ? ДляПодій.АктуальнаДатаПодій_Const : DateTime.Now);
+        }
+
+        /// <summary>
+        /// Дата запуску бази
+        /// </summary>
+        static async ValueTask<DateOnly> ОтриматиДатуПочаткуПодій()
+        {
+            //Перечитати значення констант
+            await ДляПодій.ReadAll();
+
+            //Актуальна дата новин
+            return DateOnly.FromDateTime(ДляПодій.ПочатокПодій_Const != DateTime.MinValue ? ДляПодій.ПочатокПодій_Const : DateTime.Now);
         }
 
         #endregion

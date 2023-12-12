@@ -1,23 +1,11 @@
 {
   "Version": 1,
-  "Hash": "ClkU2FZcdoYwo4j38dREI9QcmpnfieqmIHkgD0uDYtw=",
+  "Hash": "YAftBrU9/jiXphFgPuwbOWDikM/69Fw4Nz1c2c2C8/A=",
   "Source": "FindOrgUaWeb",
   "BasePath": "_content/FindOrgUaWeb",
   "Mode": "Default",
   "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [
-    {
-      "Identity": "/home/tarachom/Projects/FindOrgUa/FindOrgUa.csproj",
-      "Version": 2,
-      "Source": "FindOrgUa",
-      "GetPublishAssetsTargets": "ComputeReferencedStaticWebAssetsPublishManifest;GetCurrentProjectPublishStaticWebAssetItems",
-      "AdditionalPublishProperties": "",
-      "AdditionalPublishPropertiesToRemove": "WebPublishProfileFile;TargetFramework",
-      "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
-      "AdditionalBuildProperties": "",
-      "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework"
-    }
-  ],
+  "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
   "Assets": []
 }
