@@ -118,6 +118,17 @@
 
 							<xsl:for-each select="root/row">
 								<div class="img-thumbnail" style="padding:10px;">
+									<xsl:if test="count(ПопередняПодія/previous_event) &gt; 0">
+										<p>
+											<small>
+												<xsl:value-of select="ПопередняПодія/previous_event/date"/>
+												<xsl:text> </xsl:text>
+												<a href="/watch/service/news/code-{code}">
+													<xsl:value-of select="ПопередняПодія/previous_event/caption"/>
+												</a>
+											</small>
+										</p>
+									</xsl:if>
 									<p>
 										<small>Дата <xsl:value-of select="Період"/></small>
 
