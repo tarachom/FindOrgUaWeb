@@ -84,14 +84,28 @@ namespace FindOrgUa
                 /* для перегляду однієї новини */
                 app.MapGet("/news/code-{code}", NewsItem);
 
+                /* особистості */
                 app.MapGet("/personality", Personality);
+
+                /* для перегляду однієї особистості */
+                app.MapGet("/personality/code-{code}", PersonalityItem);
 
                 app.Run();
             }
         }
 
         /// <summary>
-        /// 
+        /// Одна особистість
+        /// </summary>
+        static async Task PersonalityItem(HttpContext context, string code)
+        {
+            var response = context.Response;
+
+            await response.WriteAsync("ok" + code);
+        }
+
+        /// <summary>
+        /// Особистості
         /// </summary>
         static async Task Personality(HttpContext context)
         {
@@ -204,6 +218,7 @@ namespace FindOrgUa
                 { "date_now", АктуальнаДата.ToString() },
                 { "page", 1 },
                 { "code", code },
+                { "variant_page", "news_item" },
                 { "title", Заголовок },
                 { "year", DateTime.Now.Year }
             };
@@ -333,6 +348,7 @@ namespace FindOrgUa
                 { "date", ПеріодВідбір.ToString() },
                 { "date_now", АктуальнаДата.ToString() },
                 { "page", Сторінка },
+                { "variant_page", "news" },
                 { "title", Сторінка > 1 ? $"Сторінка №{Сторінка}" : "" },
                 { "year", DateTime.Now.Year }
             };
@@ -471,7 +487,8 @@ SELECT
     Рег_Події.{Події_Const.Відео} AS Відео,
     Рег_Події.{Події_Const.Джерело} AS Джерело,
     Рег_Події.{Події_Const.Лінки} AS Лінки,
-    Рег_Події.{Події_Const.ПопередняПодія} AS ПопередняПодія
+    Рег_Події.{Події_Const.ПопередняПодія} AS ПопередняПодія,
+    Рег_Події.{Події_Const.ПовязаніОсоби} AS ПовязаніОсоби
 FROM
     {Події_Const.TABLE} AS Рег_Події
 WHERE

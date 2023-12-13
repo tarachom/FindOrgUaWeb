@@ -14,6 +14,9 @@
 	<!-- Код новини -->
 	<xsl:param name="code" />
 
+	<!-- Варіант сторінки (news | news_item) -->
+	<xsl:param name="variant_page" />
+
 	<!-- Додатковий заголовок -->
 	<xsl:param name="title" />
 	
@@ -39,7 +42,7 @@
 				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
 
-				<xsl:if test="normalize-space($code) = ''">
+				<xsl:if test="$variant_page = 'news'">
 					<link rel="canonical">
 						<xsl:attribute name="href">
 							<xsl:text>https://find.org.ua/watch/service/news/</xsl:text>
@@ -118,6 +121,8 @@
 
 							<xsl:for-each select="root/row">
 								<div class="img-thumbnail" style="padding:10px;">
+									
+									<!-- Попередня подія -->
 									<xsl:if test="count(ПопередняПодія/previous_event) &gt; 0">
 										<p>
 											<small>
@@ -129,10 +134,11 @@
 											</small>
 										</p>
 									</xsl:if>
+
 									<p>
 										<small>Дата <xsl:value-of select="Період"/></small>
 
-										<xsl:if test="normalize-space($code) = ''">
+										<xsl:if test="$variant_page = 'news'">
 											<xsl:text> </xsl:text>
 											<a href="/watch/service/news/code-{Код}">Детальніше</a>
 										</xsl:if>
@@ -217,6 +223,21 @@
 												<a target="_blank" href="{src}">
 													<xsl:value-of select="name"/>
 												</a><br />
+											</xsl:for-each>
+										</p>
+									</xsl:if>
+
+									<!-- Повязані особи -->
+									<xsl:if test="$variant_page = 'news_item' and count(ПовязаніОсоби/persona) &gt; 0">
+										<p>
+											<xsl:text>Повязані особи: </xsl:text>
+											<xsl:for-each select="ПовязаніОсоби/persona">
+												<xsl:if test="position() &gt; 1">
+													<xsl:text>, </xsl:text>
+												</xsl:if>
+												<a href="/watch/service/personality/code-{code}">
+													<xsl:value-of select="name"/>
+												</a>
 											</xsl:for-each>
 										</p>
 									</xsl:if>
