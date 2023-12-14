@@ -161,9 +161,24 @@
 									<!-- Кількість згадок особистості в подіях -->
 									<xsl:if test="normalize-space(КількістьЗгадок) != ''">
 										<p>
-											<xsl:text>Пов'язаних подій: </xsl:text>
-											<xsl:value-of select="КількістьЗгадок"/>
+											<xsl:text>Пов'язаних новин: </xsl:text>
+											<span class="badge rounded-pill bg-warning text-dark">
+												<xsl:if test="$variant_page = 'personality'">
+													<a href="/watch/service/personality/code-{КодОсобистості}"><xsl:value-of select="КількістьЗгадок"/></a>
+												</xsl:if>
+												<xsl:if test="$variant_page = 'personality_item'">
+													<xsl:value-of select="КількістьЗгадок"/>
+												</xsl:if>
+											</span>
 										</p>
+										<!-- Список пов'язаних новин -->
+										<xsl:for-each select="../related_news">
+											<p>
+												<small><xsl:value-of select="period"/></small>
+												<xsl:text> </xsl:text>
+												<a href="/watch/service/news/code-{КодДокументу}"><xsl:value-of select="Заголовок"/></a>
+											</p>
+										</xsl:for-each>
 									</xsl:if>
 									
 								</div>

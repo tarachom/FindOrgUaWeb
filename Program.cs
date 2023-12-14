@@ -174,6 +174,12 @@ namespace FindOrgUa
                 return;
             }
 
+            if (!await ПеревіритиЧиОпублікованаОсобистість(особистості_Pointer))
+            {
+                response.StatusCode = 404;
+                return;
+            }
+
             xml = await ВибіркаОднієїОсобистості_ХМЛ(особистості_Pointer);
 
             Dictionary<string, object> args = new()
@@ -279,9 +285,9 @@ namespace FindOrgUa
                     locNode.InnerText = "https://find.org.ua/watch/service/news/" + row["Період"].ToString();
                     urlNode.AppendChild(locNode);
 
-                    XmlElement lastmodNode = xmlDoc.CreateElement("lastmod");
-                    lastmodNode.InnerText = row["ПеріодАнгФормат"].ToString() ?? "";
-                    urlNode.AppendChild(lastmodNode);
+                    // XmlElement lastmodNode = xmlDoc.CreateElement("lastmod");
+                    // lastmodNode.InnerText = row["ПеріодАнгФормат"].ToString() ?? "";
+                    // urlNode.AppendChild(lastmodNode);
                 }
             }
 
@@ -488,6 +494,25 @@ namespace FindOrgUa
         #region Personality
 
         /// <summary>
+        /// Перевірка чи вже є опублікована особистість
+        /// </summary>
+        /// <param name="Особистість_Pointer"></param>
+        /// <returns></returns>
+        static async ValueTask<bool> ПеревіритиЧиОпублікованаОсобистість(Особистості_Pointer Особистість_Pointer)
+        {
+            string query = @$"
+SELECT
+    count(uid)
+FROM
+    {РегОсобистості_Const.TABLE}
+WHERE
+    {РегОсобистості_Const.Особистість} = @Особистість
+";
+            var result = await Config.Kernel.DataBase.ExecuteSQLScalar(query, new() { { "Особистість", Особистість_Pointer.UnigueID.UGuid } });
+            return result != null && (long)result >= 1;
+        }
+
+        /// <summary>
         /// Вибірка однієї особистості
         /// </summary>
         /// <param name="Особистість_Pointer">Вказівник на особистість</param>
@@ -495,6 +520,8 @@ namespace FindOrgUa
         static async ValueTask<string> ВибіркаОднієїОсобистості_ХМЛ(Особистості_Pointer Особистість_Pointer)
         {
             string xml = "";
+
+            Dictionary<string, object> paramQuery = new() { { "Особистість", Особистість_Pointer.UnigueID.UGuid } };
 
             //Особистість
             {
@@ -517,11 +544,6 @@ FROM
 WHERE
     Рег_Особистості.{РегОсобистості_Const.Особистість} = @Особистість
 ";
-                Dictionary<string, object> paramQuery = new()
-            {
-                { "Особистість", Особистість_Pointer.UnigueID.UGuid }
-            };
-
                 var recordResult = await Config.Kernel.DataBase.SelectRequestAsync(query, paramQuery);
                 if (recordResult.Result)
                     foreach (var row in recordResult.ListRow)
@@ -537,23 +559,28 @@ WHERE
             {
                 string query = @$"
 SELECT
-    Рег_Особистості.uid,
-    Рег_Особистості.period AS Період,
-    Рег_Особистості.owner AS Документ,
-    Рег_Особистості.{РегОсобистості_Const.Заголовок} AS Заголовок,
-    Рег_Особистості.{РегОсобистості_Const.Опис} AS Опис,
-    Рег_Особистості.{РегОсобистості_Const.Фото} AS Фото,
-    Рег_Особистості.{РегОсобистості_Const.КодДокументу} AS КодДокументу,
-    Рег_Особистості.{РегОсобистості_Const.КодОсобистості} AS КодОсобистості,
-    КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Кількість} AS КількістьЗгадок
+    Рег_Події.period,
+    Рег_Події.{Події_Const.Заголовок} AS Заголовок,
+    Рег_Події.{Події_Const.КодДокументу} AS КодДокументу
 FROM
-    {РегОсобистості_Const.TABLE} AS Рег_Особистості
+    {ПодіїТаОсобистості_Const.TABLE} AS Рег_ПодіїТаОсобистості
 
-    LEFT JOIN {ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.TABLE} AS КількістьЗгадок ON 
-        КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Особистість} = Рег_Особистості.{РегОсобистості_Const.Особистість}
+    JOIN {Події_Const.TABLE} AS Рег_Події ON 
+        Рег_Події.owner = Рег_ПодіїТаОсобистості.{ПодіїТаОсобистості_Const.Подія}
 WHERE
-    Рег_Особистості.{РегОсобистості_Const.Особистість} = @Особистість
+    Рег_ПодіїТаОсобистості.{ПодіїТаОсобистості_Const.Особистість} = @Особистість
 ";
+                var recordResult = await Config.Kernel.DataBase.SelectRequestAsync(query, paramQuery);
+                if (recordResult.Result)
+                {
+                    foreach (var row in recordResult.ListRow)
+                    {
+                        xml += "<related_news>";
+                        foreach (var column in recordResult.ColumnsName)
+                            xml += $"<{column}>{row[column]}</{column}>";
+                        xml += "</related_news>";
+                    }
+                }
             }
 
             return xml;
