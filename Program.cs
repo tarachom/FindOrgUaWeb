@@ -569,6 +569,8 @@ FROM
         Рег_Події.owner = Рег_ПодіїТаОсобистості.{ПодіїТаОсобистості_Const.Подія}
 WHERE
     Рег_ПодіїТаОсобистості.{ПодіїТаОсобистості_Const.Особистість} = @Особистість
+ORDER BY
+    Рег_Події.period DESC
 ";
                 var recordResult = await Config.Kernel.DataBase.SelectRequestAsync(query, paramQuery);
                 if (recordResult.Result)
