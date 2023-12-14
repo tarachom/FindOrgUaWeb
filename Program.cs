@@ -7,6 +7,7 @@ using AccountingSoftware;
 
 using FindOrgUa_1_0;
 using FindOrgUa_1_0.Константи;
+using FindOrgUa_1_0.Довідники;
 using FindOrgUa_1_0.Документи;
 using FindOrgUa_1_0.РегістриНакопичення;
 
@@ -18,6 +19,7 @@ namespace FindOrgUa
 
         //Кількість новин на сторінку
         const int КількістьПодійНаСторінку = 5;
+        const int КількістьОсобистостейНаСторінку = 5;
 
         #endregion
 
@@ -69,6 +71,9 @@ namespace FindOrgUa
                 /* sitemap для новин */
                 app.MapGet("/sitemap-news", SiteMapNews);
 
+                /* sitemap для особистостей */
+                app.MapGet("/sitemap-personality", SiteMapPersonality);
+
                 /* 
                     /news
                     /news/01.12.2023
@@ -84,8 +89,11 @@ namespace FindOrgUa
                 /* для перегляду однієї новини */
                 app.MapGet("/news/code-{code}", NewsItem);
 
-                /* особистості */
-                app.MapGet("/personality", Personality);
+                /*  
+                    /personality
+                    /personality/1
+                */
+                app.MapGet("/personality/{page:int?}", Personality);
 
                 /* для перегляду однієї особистості */
                 app.MapGet("/personality/code-{code}", PersonalityItem);
@@ -95,23 +103,143 @@ namespace FindOrgUa
         }
 
         /// <summary>
+        /// ХМЛ sitemap для особистостей
+        /// </summary>
+        static async Task SiteMapPersonality(HttpContext context)
+        {
+            var response = context.Response;
+
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.AppendChild(xmlDoc.CreateXmlDeclaration("1.0", "utf-8", ""));
+
+            XmlElement rootNode = xmlDoc.CreateElement("urlset");
+
+            XmlAttribute attrNs = xmlDoc.CreateAttribute("xmlns");
+            attrNs.Value = "http://www.sitemaps.org/schemas/sitemap/0.9";
+            rootNode.Attributes.Append(attrNs);
+
+            xmlDoc.AppendChild(rootNode);
+
+            long КількістьОсобистостей = await ВибіркаКількістьОсобистостей();
+
+            //Кількість сторінок
+            int pageCount = (int)Math.Ceiling(КількістьОсобистостей / (decimal)КількістьОсобистостейНаСторінку);
+            for (int i = 2; i <= pageCount; i++)
+            {
+                /*
+                <url>
+                    <loc>https://find.org.ua/watch/service/personality/2</loc>
+                    <lastmod>2023-12-04</lastmod>
+                </url>
+                */
+
+                XmlElement urlNode = xmlDoc.CreateElement("url");
+                rootNode.AppendChild(urlNode);
+
+                XmlElement locNode = xmlDoc.CreateElement("loc");
+                locNode.InnerText = "https://find.org.ua/watch/service/personality/" + i;
+                urlNode.AppendChild(locNode);
+            }
+
+            await response.WriteAsync(xmlDoc.OuterXml);
+        }
+
+        /// <summary>
         /// Одна особистість
         /// </summary>
         static async Task PersonalityItem(HttpContext context, string code)
         {
+            string xml = "";
+
             var response = context.Response;
 
-            await response.WriteAsync("ok" + code);
+            //Перевірка переданих параметрів
+            if (string.IsNullOrEmpty(code))
+            {
+                response.StatusCode = 404;
+                return;
+            }
+
+            Особистості_Pointer особистості_Pointer = await new Особистості_Select().FindByField(Особистості_Const.Код, code);
+            if (особистості_Pointer.IsEmpty())
+            {
+                response.StatusCode = 404;
+                return;
+            }
+
+            var особистості_Object = await особистості_Pointer.GetDirectoryObject();
+            if (особистості_Object == null)
+            {
+                response.StatusCode = 404;
+                return;
+            }
+
+            xml = await ВибіркаОднієїОсобистості_ХМЛ(особистості_Pointer);
+
+            Dictionary<string, object> args = new()
+            {
+                { "page", 1 },
+                { "code", code },
+                { "variant_page", "personality_item" },
+                { "title", особистості_Object.Назва },
+                { "year", DateTime.Now.Year }
+            };
+
+            using (TextWriter? writer = Transform(xml, args, "WebPersonality.xslt"))
+                await response.WriteAsync(writer?.ToString() ?? "");
         }
 
         /// <summary>
         /// Особистості
         /// </summary>
-        static async Task Personality(HttpContext context)
+        static async Task Personality(HttpContext context, int? page)
         {
+            string xml = "";
+
             var response = context.Response;
 
-            await response.WriteAsync("ok");
+            //Сторінка
+            int Сторінка = 1;
+
+            //Перевірка переданих параметрів
+            if (page != null)
+                Сторінка = (int)page;
+
+            if (Сторінка <= 0)
+            {
+                response.StatusCode = 404;
+                return;
+            }
+
+            long КількістьОсобистостей = await ВибіркаКількістьОсобистостей();
+
+            //Кількість сторінок
+            int pageCount = (int)Math.Ceiling(КількістьОсобистостей / (decimal)КількістьОсобистостейНаСторінку);
+
+            //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
+            if (Сторінка > 1 && КількістьОсобистостей < КількістьОсобистостейНаСторінку * (Сторінка - 1))
+                Сторінка = pageCount;
+
+            if (pageCount > 1)
+            {
+                xml += "<pages>";
+                for (int p = 1; p <= pageCount; p++)
+                    xml += $"<page>{p}</page>";
+                xml += "</pages>";
+            }
+
+            xml += await ВибіркаОсобистостей_ХМЛ(Сторінка);
+
+            Dictionary<string, object> args = new()
+            {
+                { "page", Сторінка },
+                { "variant_page", "personality" },
+                { "title", Сторінка > 1 ? $"Сторінка №{Сторінка}" : "" },
+                { "year", DateTime.Now.Year }
+            };
+
+            using (TextWriter? writer = Transform(xml, args, "WebPersonality.xslt"))
+                await response.WriteAsync(writer?.ToString() ?? "");
         }
 
         /// <summary>
@@ -357,47 +485,147 @@ namespace FindOrgUa
                 await response.WriteAsync(writer?.ToString() ?? "");
         }
 
-        #region Func
+        #region Personality
 
         /// <summary>
-        /// Трансформація ХМЛ в НТМЛ
+        /// Вибірка однієї особистості
         /// </summary>
-        /// <param name="innerXml">Хмл</param>
-        /// <param name="args">Аргументи</param>
-        /// <param name="template">Шаблон</param>
-        static TextWriter? Transform(string innerXml, Dictionary<string, object>? args, string template)
+        /// <param name="Особистість_Pointer">Вказівник на особистість</param>
+        /// <returns></returns>
+        static async ValueTask<string> ВибіркаОднієїОсобистості_ХМЛ(Особистості_Pointer Особистість_Pointer)
         {
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.AppendChild(xmlDoc.CreateXmlDeclaration("1.0", "utf-8", ""));
+            string xml = "";
 
-            XmlElement rootNode = xmlDoc.CreateElement("root");
-            xmlDoc.AppendChild(rootNode);
-
-            //Вставка ХМЛ даних
-            rootNode.InnerXml = innerXml;
-
-            TextWriter? writer = null;
-
-            XPathNavigator? navigator = xmlDoc.CreateNavigator();
-            if (navigator != null)
+            //Особистість
             {
-                XslCompiledTransform xslt = new XslCompiledTransform();
-                xslt.Load(AppContext.BaseDirectory + $"xslt/{template}");
+                string query = @$"
+SELECT
+    Рег_Особистості.uid,
+    Рег_Особистості.period AS Період,
+    Рег_Особистості.owner AS Документ,
+    Рег_Особистості.{РегОсобистості_Const.Заголовок} AS Заголовок,
+    Рег_Особистості.{РегОсобистості_Const.Опис} AS Опис,
+    Рег_Особистості.{РегОсобистості_Const.Фото} AS Фото,
+    Рег_Особистості.{РегОсобистості_Const.КодДокументу} AS КодДокументу,
+    Рег_Особистості.{РегОсобистості_Const.КодОсобистості} AS КодОсобистості,
+    КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Кількість} AS КількістьЗгадок
+FROM
+    {РегОсобистості_Const.TABLE} AS Рег_Особистості
 
-                XsltArgumentList? xsltArgs = null;
-                if (args != null)
-                {
-                    xsltArgs = new XsltArgumentList();
-                    foreach (var item in args)
-                        xsltArgs.AddParam(item.Key, "", item.Value);
-                }
+    LEFT JOIN {ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.TABLE} AS КількістьЗгадок ON 
+        КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Особистість} = Рег_Особистості.{РегОсобистості_Const.Особистість}
+WHERE
+    Рег_Особистості.{РегОсобистості_Const.Особистість} = @Особистість
+";
+                Dictionary<string, object> paramQuery = new()
+            {
+                { "Особистість", Особистість_Pointer.UnigueID.UGuid }
+            };
 
-                writer = new StringWriter();
-                xslt.Transform(navigator, xsltArgs, writer);
+                var recordResult = await Config.Kernel.DataBase.SelectRequestAsync(query, paramQuery);
+                if (recordResult.Result)
+                    foreach (var row in recordResult.ListRow)
+                    {
+                        xml += "<row>";
+                        foreach (var column in recordResult.ColumnsName)
+                            xml += $"<{column}>{row[column]}</{column}>";
+                        xml += "</row>";
+                    }
             }
 
-            return writer;
+            //Повязані події
+            {
+                string query = @$"
+SELECT
+    Рег_Особистості.uid,
+    Рег_Особистості.period AS Період,
+    Рег_Особистості.owner AS Документ,
+    Рег_Особистості.{РегОсобистості_Const.Заголовок} AS Заголовок,
+    Рег_Особистості.{РегОсобистості_Const.Опис} AS Опис,
+    Рег_Особистості.{РегОсобистості_Const.Фото} AS Фото,
+    Рег_Особистості.{РегОсобистості_Const.КодДокументу} AS КодДокументу,
+    Рег_Особистості.{РегОсобистості_Const.КодОсобистості} AS КодОсобистості,
+    КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Кількість} AS КількістьЗгадок
+FROM
+    {РегОсобистості_Const.TABLE} AS Рег_Особистості
+
+    LEFT JOIN {ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.TABLE} AS КількістьЗгадок ON 
+        КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Особистість} = Рег_Особистості.{РегОсобистості_Const.Особистість}
+WHERE
+    Рег_Особистості.{РегОсобистості_Const.Особистість} = @Особистість
+";
+            }
+
+            return xml;
         }
+
+        /// <summary>
+        /// Вибірка особистостей у межах сторінки
+        /// </summary>
+        /// <param name="Сторінка">Сторінка</param>
+        /// <returns></returns>
+        static async ValueTask<string> ВибіркаОсобистостей_ХМЛ(int Сторінка)
+        {
+            string xml = "";
+
+            string query = @$"
+SELECT
+    Рег_Особистості.uid,
+    Рег_Особистості.period AS Період,
+    Рег_Особистості.owner AS Документ,
+    Рег_Особистості.{РегОсобистості_Const.Заголовок} AS Заголовок,
+    Рег_Особистості.{РегОсобистості_Const.Опис} AS Опис,
+    Рег_Особистості.{РегОсобистості_Const.Фото} AS Фото,
+    Рег_Особистості.{РегОсобистості_Const.КодДокументу} AS КодДокументу,
+    Рег_Особистості.{РегОсобистості_Const.КодОсобистості} AS КодОсобистості,
+    КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Кількість} AS КількістьЗгадок
+FROM
+    {РегОсобистості_Const.TABLE} AS Рег_Особистості
+
+    LEFT JOIN {ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.TABLE} AS КількістьЗгадок ON 
+        КількістьЗгадок.{ПодіїТаОсобистості_КількістьЗгадокОсобистостейУПодіях_TablePart.Особистість} = Рег_Особистості.{РегОсобистості_Const.Особистість}
+ORDER BY
+    Період DESC
+LIMIT @КількістьНаСторінку
+OFFSET @Зміщення
+";
+            Dictionary<string, object> paramQuery = new()
+            {
+                { "КількістьНаСторінку", КількістьОсобистостейНаСторінку },
+                { "Зміщення", КількістьОсобистостейНаСторінку * (Сторінка - 1) }
+            };
+
+            var recordResult = await Config.Kernel.DataBase.SelectRequestAsync(query, paramQuery);
+            if (recordResult.Result)
+                foreach (var row in recordResult.ListRow)
+                {
+                    xml += "<row>";
+                    foreach (var column in recordResult.ColumnsName)
+                        xml += $"<{column}>{row[column]}</{column}>";
+                    xml += "</row>";
+                }
+
+            return xml;
+        }
+
+        /// <summary>
+        /// Кількість особистостей
+        /// </summary>
+        static async ValueTask<long> ВибіркаКількістьОсобистостей()
+        {
+            string query = @$"
+SELECT
+    count(Рег_Особистості.uid) AS Кількість
+FROM
+    {РегОсобистості_Const.TABLE} AS Рег_Особистості
+";
+            var recordResult = await Config.Kernel.DataBase.ExecuteSQLScalar(query, null);
+            return recordResult == null ? 0 : (long)recordResult;
+        }
+
+        #endregion
+
+        #region News
 
         /// <summary>
         /// Кількість новин на дату
@@ -488,7 +716,7 @@ SELECT
     Рег_Події.{Події_Const.Джерело} AS Джерело,
     Рег_Події.{Події_Const.Лінки} AS Лінки,
     Рег_Події.{Події_Const.ПопередняПодія} AS ПопередняПодія,
-    Рег_Події.{Події_Const.ПовязаніОсоби} AS ПовязаніОсоби
+    Рег_Події.{Події_Const.ПовязаніОсобистості} AS ПовязаніОсобистості
 FROM
     {Події_Const.TABLE} AS Рег_Події
 WHERE
@@ -640,6 +868,50 @@ FROM
 
             //Актуальна дата новин
             return DateOnly.FromDateTime(ДляПодій.ПочатокПодій_Const != DateTime.MinValue ? ДляПодій.ПочатокПодій_Const : DateTime.Now);
+        }
+
+        #endregion
+
+        #region Func
+
+        /// <summary>
+        /// Трансформація ХМЛ в НТМЛ
+        /// </summary>
+        /// <param name="innerXml">Хмл</param>
+        /// <param name="args">Аргументи</param>
+        /// <param name="template">Шаблон</param>
+        static TextWriter? Transform(string innerXml, Dictionary<string, object>? args, string template)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.AppendChild(xmlDoc.CreateXmlDeclaration("1.0", "utf-8", ""));
+
+            XmlElement rootNode = xmlDoc.CreateElement("root");
+            xmlDoc.AppendChild(rootNode);
+
+            //Вставка ХМЛ даних
+            rootNode.InnerXml = innerXml;
+
+            TextWriter? writer = null;
+
+            XPathNavigator? navigator = xmlDoc.CreateNavigator();
+            if (navigator != null)
+            {
+                XslCompiledTransform xslt = new XslCompiledTransform();
+                xslt.Load(AppContext.BaseDirectory + $"xslt/{template}");
+
+                XsltArgumentList? xsltArgs = null;
+                if (args != null)
+                {
+                    xsltArgs = new XsltArgumentList();
+                    foreach (var item in args)
+                        xsltArgs.AddParam(item.Key, "", item.Value);
+                }
+
+                writer = new StringWriter();
+                xslt.Transform(navigator, xsltArgs, writer);
+            }
+
+            return writer;
         }
 
         #endregion

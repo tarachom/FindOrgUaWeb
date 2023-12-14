@@ -2,24 +2,18 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="html" indent="no" omit-xml-declaration="yes" />
 
-	<!-- Дата новин -->
-	<xsl:param name="date" />
-
-	<!-- Актуальна дата -->
-	<xsl:param name="date_now" />
-
-	<!-- Сторінка у межах дати -->
+	<!-- Сторінка -->
 	<xsl:param name="page" />
 
 	<!-- Код новини -->
 	<xsl:param name="code" />
 
-	<!-- Варіант сторінки (news | news_item) -->
+	<!-- Варіант сторінки (personality | personality_item) -->
 	<xsl:param name="variant_page" />
 
 	<!-- Додатковий заголовок -->
 	<xsl:param name="title" />
-	
+
 	<!-- Поточний рік -->
 	<xsl:param name="year" />
 
@@ -29,8 +23,7 @@
 		<html>
 			<head>
 				<title>
-					<xsl:text>Новини України </xsl:text>
-					<xsl:value-of select="concat('(', $date, ')')" />
+					<xsl:text>Особистості </xsl:text>
 					<xsl:if test="normalize-space($title) != ''">
 						<xsl:value-of select="concat(' - ', normalize-space($title))" />
 					</xsl:if>
@@ -41,18 +34,6 @@
 				<meta http-equiv="Pragma" content="no-cache" />
 				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
-
-				<xsl:if test="$variant_page = 'news'">
-					<link rel="canonical">
-						<xsl:attribute name="href">
-							<xsl:text>https://find.org.ua/watch/service/news/</xsl:text>
-							<xsl:value-of select="concat($date, '/')" />
-							<xsl:if test="number($page) &gt; 1">
-								<xsl:value-of select="$page" />
-							</xsl:if>
-						</xsl:attribute>
-					</link>
-				</xsl:if>
 
 				<!-- Google tag (gtag.js) -->
 				<!--
@@ -90,13 +71,13 @@
 						<div class="collapse navbar-collapse" id="mynavbar">
 							<ul class="navbar-nav me-auto">
 								<li class="nav-item">
-									<a class="nav-link active" href="/watch/service/news">Новини</a>
+									<a class="nav-link" href="/watch/service/news">Новини</a>
 								</li>
 								<li class="nav-item">
 									<a class="nav-link" href="/tg/">Телеграм-канали</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" href="/watch/service/personality">Особистості</a>
+									<a class="nav-link active" href="/watch/service/personality">Особистості</a>
 								</li>
 								<li class="nav-item">
 									<a class="nav-link" href="/about.html">Про проект</a>
@@ -117,30 +98,17 @@
 						</div>
 
 						<div class="col-sm-8">
-							<h3>Новини</h3>
+							<h3>Особистості</h3>
 
 							<xsl:for-each select="root/row">
 								<div class="img-thumbnail" style="padding:10px;">
 									
-									<!-- Попередня подія -->
-									<xsl:if test="count(ПопередняПодія/previous_event) &gt; 0">
-										<p>
-											<small>
-												<xsl:value-of select="ПопередняПодія/previous_event/date"/>
-												<xsl:text> </xsl:text>
-												<a href="/watch/service/news/code-{code}">
-													<xsl:value-of select="ПопередняПодія/previous_event/caption"/>
-												</a>
-											</small>
-										</p>
-									</xsl:if>
-
 									<p>
 										<small>Дата <xsl:value-of select="Період"/></small>
 
-										<xsl:if test="$variant_page = 'news'">
+										<xsl:if test="$variant_page = 'personality'">
 											<xsl:text> </xsl:text>
-											<a href="/watch/service/news/code-{Код}">Детальніше</a>
+											<a href="/watch/service/personality/code-{КодОсобистості}">Детальніше</a>
 										</xsl:if>
 									</p>
 									<h5><xsl:value-of select="Заголовок"/></h5>
@@ -187,67 +155,23 @@
 										</xsl:when>
 									</xsl:choose>
 
-									<!-- Відео -->
-									<xsl:if test="count(Відео/video) &gt; 0">
-										<xsl:for-each select="Відео/video">
-											<video controls="controls" preload="none" class="img-thumbnail" poster="/files/{poster}" src="/files/{src}">
-												<!--<source type="video/mp4" src="/files/{src}" />-->
-												<p>
-													<xsl:value-of select="alt" />
-												</p>
-											</video>
-										</xsl:for-each>
-									</xsl:if>
-
 									<!-- Опис -->
 									<p><xsl:value-of disable-output-escaping="yes" select="Опис"/></p>
 
-									<!-- Джерело -->
-									<p>
-										<xsl:if test="count(Джерело/source) &gt; 0">
-											<xsl:text>Джерело: </xsl:text>
-											<b><xsl:value-of select="Джерело/source/name"/></b>
-											<xsl:if test="normalize-space(Джерело/source/link) != ''">
-												<xsl:text> </xsl:text>
-												<a target="_blank" href="{Джерело/source/link}">
-													<xsl:text>Відкрити</xsl:text>
-												</a>
-											</xsl:if>
-										</xsl:if>
-									</p>
-									
-									<!-- Лінки -->
-									<xsl:if test="count(Лінки/links) &gt; 0">
-										<p>Матеріали по темі:<br />
-											<xsl:for-each select="Лінки/links">
-												<a target="_blank" href="{src}">
-													<xsl:value-of select="name"/>
-												</a><br />
-											</xsl:for-each>
-										</p>
-									</xsl:if>
-
-									<!-- Повязані особи -->
-									<xsl:if test="$variant_page = 'news_item' and count(ПовязаніОсобистості/persona) &gt; 0">
+									<!-- Кількість згадок особистості в подіях -->
+									<xsl:if test="normalize-space(КількістьЗгадок) != ''">
 										<p>
-											<xsl:text>Повязані особистості: </xsl:text>
-											<xsl:for-each select="ПовязаніОсобистості/persona">
-												<xsl:if test="position() &gt; 1">
-													<xsl:text>, </xsl:text>
-												</xsl:if>
-												<a href="/watch/service/personality/code-{code}">
-													<xsl:value-of select="name"/>
-												</a>
-											</xsl:for-each>
+											<xsl:text>Пов'язаних подій: </xsl:text>
+											<xsl:value-of select="КількістьЗгадок"/>
 										</p>
 									</xsl:if>
-
+									
 								</div>
 								<br />
 							</xsl:for-each>
 
 							<!-- Сторінки -->
-							<xsl:if test="$variant_page = 'news' and count(root/pages/page) &gt; 0">
+							<xsl:if test="$variant_page = 'personality' and count(root/pages/page) &gt; 0">
 								<p>Сторінки:</p>
 								<ul class="pagination" style="margin:20px 0">
 									<xsl:for-each select="root/pages/page">
@@ -260,17 +184,14 @@
 												<xsl:choose>
 													<xsl:when test="$curr_page = 1">
 														<xsl:attribute name="href">
-															<xsl:text>/watch/service/news/</xsl:text>
-															<xsl:if test="$date != $date_now">
-																<xsl:value-of select="$date" />
-															</xsl:if>
+															<xsl:text>/watch/service/personality/</xsl:text>
 														</xsl:attribute>
 														<xsl:text>Перша</xsl:text>
 													</xsl:when>
 													<xsl:otherwise>
 														<xsl:attribute name="href">
-															<xsl:text>/watch/service/news/</xsl:text>
-															<xsl:value-of select="concat($date, '/', $curr_page)" />
+															<xsl:text>/watch/service/personality/</xsl:text>
+															<xsl:value-of select="$curr_page" />
 														</xsl:attribute>
 														<xsl:value-of select="$curr_page" />
 													</xsl:otherwise>
@@ -280,29 +201,10 @@
 									</xsl:for-each>
 								</ul>
 							</xsl:if>
-
 						</div>
 
 						<div class="col-sm-2">
-							<xsl:if test="count(root/period/row) &gt; 0">
-								<h5>Дати новин:</h5>
-								<ul class="nav nav-pills flex-column align-items-center">
-									<xsl:for-each select="root/period/row">
-										<li class="nav-item">
-											<a class="nav-link" href="/watch/service/news/{Період}">
-												<xsl:if test="$date = Період">
-													<xsl:attribute name="class">nav-link active</xsl:attribute>
-												</xsl:if>
-												<xsl:value-of select="Період"/>
-												<xsl:text> </xsl:text>
-												<span class="badge rounded-pill bg-warning text-dark">
-													<xsl:value-of select="Кількість"/>
-												</span>
-											</a>
-										</li>										
-									</xsl:for-each>
-								</ul>
-							</xsl:if>
+							
 						</div>
 						
 					</div>
