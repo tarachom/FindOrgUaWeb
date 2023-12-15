@@ -189,6 +189,16 @@
 							<xsl:if test="$variant_page = 'personality' and count(root/pages/page) &gt; 0">
 								<p>Сторінки:</p>
 								<ul class="pagination" style="margin:20px 0">
+								
+									<li class="page-item">
+										<xsl:if test="$page = 1">
+											<xsl:attribute name="class">page-item active</xsl:attribute>
+										</xsl:if>
+										<a class="page-link" href="/watch/service/personality/">
+											<xsl:text>Перша</xsl:text>
+										</a>
+									</li>
+
 									<xsl:for-each select="root/pages/page">
 										<xsl:variable name="curr_page" select="text()" />
 										<li class="page-item">
@@ -196,24 +206,25 @@
 												<xsl:attribute name="class">page-item active</xsl:attribute>
 											</xsl:if>
 											<a class="page-link">
-												<xsl:choose>
-													<xsl:when test="$curr_page = 1">
-														<xsl:attribute name="href">
-															<xsl:text>/watch/service/personality/</xsl:text>
-														</xsl:attribute>
-														<xsl:text>Перша</xsl:text>
-													</xsl:when>
-													<xsl:otherwise>
-														<xsl:attribute name="href">
-															<xsl:text>/watch/service/personality/</xsl:text>
-															<xsl:value-of select="$curr_page" />
-														</xsl:attribute>
-														<xsl:value-of select="$curr_page" />
-													</xsl:otherwise>
-												</xsl:choose>
+												<xsl:attribute name="href">
+													<xsl:text>/watch/service/personality/</xsl:text>
+													<xsl:value-of select="$curr_page" />
+												</xsl:attribute>
+												<xsl:value-of select="$curr_page" />
 											</a>
 										</li>
 									</xsl:for-each>
+
+									<xsl:variable name="count_page" select="root/pages/pages_count" />
+									<li class="page-item">
+										<xsl:if test="$page = $count_page">
+											<xsl:attribute name="class">page-item active</xsl:attribute>
+										</xsl:if>
+										<a class="page-link" href="/watch/service/personality/{$count_page}">
+											<xsl:text>Остання</xsl:text>
+										</a>
+									</li>
+
 								</ul>
 							</xsl:if>
 						</div>

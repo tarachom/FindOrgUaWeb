@@ -225,12 +225,20 @@ namespace FindOrgUa
             //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
             if (Сторінка > 1 && КількістьОсобистостей < КількістьОсобистостейНаСторінку * (Сторінка - 1))
                 Сторінка = pageCount;
-
+                
             if (pageCount > 1)
             {
+                const int Зміщення = 3;
+                int ЛіваМежа = Сторінка - Зміщення;
+                int ПраваМежа = Сторінка + Зміщення;
+
                 xml += "<pages>";
-                for (int p = 1; p <= pageCount; p++)
-                    xml += $"<page>{p}</page>";
+                for (int p = 2; p <= pageCount - 1; p++)
+                {
+                    if (p >= ЛіваМежа && p <= ПраваМежа)
+                        xml += $"<page>{p}</page>";
+                }
+                xml += $"<pages_count>{pageCount}</pages_count>";
                 xml += "</pages>";
             }
 
