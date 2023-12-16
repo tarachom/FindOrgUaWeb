@@ -116,12 +116,6 @@ namespace FindOrgUa
             if (request.Query.ContainsKey("search"))
                 ТекстДляПошуку = request.Query["search"].ToString();
 
-            if (string.IsNullOrEmpty(ТекстДляПошуку))
-            {
-                response.StatusCode = 505;
-                return;
-            }
-
             //Сторінка у межах дати
             int Сторінка = 1;
             if (request.Query.ContainsKey("page"))
@@ -134,32 +128,35 @@ namespace FindOrgUa
                 return;
             }
 
-            long КількістьЗаписів = await ВибіркаКількістьЗаписівДляПошуку(ТекстДляПошуку);
-
-            //Кількість сторінок
-            int pageCount = (int)Math.Ceiling(КількістьЗаписів / (decimal)КількістьПошуковихЗаписівНаСторінку);
-
-            //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
-            if (Сторінка > 1 && КількістьЗаписів < КількістьПошуковихЗаписівНаСторінку * (Сторінка - 1))
-                Сторінка = pageCount;
-
-            if (pageCount > 1)
+            if (!string.IsNullOrEmpty(ТекстДляПошуку))
             {
-                const int Зміщення = 3;
-                int ЛіваМежа = Сторінка - Зміщення;
-                int ПраваМежа = Сторінка + Зміщення;
+                long КількістьЗаписів = await ВибіркаКількістьЗаписівДляПошуку(ТекстДляПошуку);
 
-                xml += "<pages>";
-                for (int p = 2; p <= pageCount - 1; p++)
+                //Кількість сторінок
+                int pageCount = (int)Math.Ceiling(КількістьЗаписів / (decimal)КількістьПошуковихЗаписівНаСторінку);
+
+                //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
+                if (Сторінка > 1 && КількістьЗаписів < КількістьПошуковихЗаписівНаСторінку * (Сторінка - 1))
+                    Сторінка = pageCount;
+
+                if (pageCount > 1)
                 {
-                    if (p >= ЛіваМежа && p <= ПраваМежа)
-                        xml += $"<page>{p}</page>";
-                }
-                xml += $"<pages_count>{pageCount}</pages_count>";
-                xml += "</pages>";
-            }
+                    const int Зміщення = 3;
+                    int ЛіваМежа = Сторінка - Зміщення;
+                    int ПраваМежа = Сторінка + Зміщення;
 
-            xml += await ВибіркаПошук_ХМЛ(ТекстДляПошуку, Сторінка);
+                    xml += "<pages>";
+                    for (int p = 2; p <= pageCount - 1; p++)
+                    {
+                        if (p >= ЛіваМежа && p <= ПраваМежа)
+                            xml += $"<page>{p}</page>";
+                    }
+                    xml += $"<pages_count>{pageCount}</pages_count>";
+                    xml += "</pages>";
+                }
+
+                xml += await ВибіркаПошук_ХМЛ(ТекстДляПошуку, Сторінка);
+            }
 
             Dictionary<string, object> args = new()
             {

@@ -102,19 +102,23 @@
 									
 									<!-- Розділ -->
 									<p>
-										<xsl:choose>
-											<xsl:when test="ВидДокументу = '1'">
-												<xsl:text>#Новини</xsl:text>
-											</xsl:when>
-											<xsl:when test="ВидДокументу = '2'">
-												<xsl:text>#Особистості</xsl:text>												
-											</xsl:when>
-										</xsl:choose>
+										<small>Дата <xsl:value-of select="Період"/></small>	
+										<xsl:text> </xsl:text>
+										<small>
+											<i>
+												<xsl:choose>
+													<xsl:when test="ВидДокументу = '1'">
+														<xsl:text>#Новини</xsl:text>
+													</xsl:when>
+													<xsl:when test="ВидДокументу = '2'">
+														<xsl:text>#Особистості</xsl:text>												
+													</xsl:when>
+												</xsl:choose>
+											</i>
+										</small>									
 									</p>
 
 									<p>
-										<small>Дата <xsl:value-of select="Період"/></small>
-										<xsl:text> </xsl:text>
 										<a>
 											<xsl:attribute name="href">
 												<xsl:text>/watch/service/</xsl:text>
@@ -129,14 +133,12 @@
 												<xsl:text>/code-</xsl:text>
 												<xsl:value-of select="Код"/>
 											</xsl:attribute>
-											<xsl:text>Детальніше</xsl:text>
+											<xsl:value-of select="Заголовок"/>
 										</a>
 									</p>
 
-									<h5><xsl:value-of select="Заголовок"/></h5>
-
 									<!-- Текст -->
-									<p><xsl:value-of disable-output-escaping="yes" select="Текст"/></p>
+									<small><xsl:value-of disable-output-escaping="yes" select="Текст"/></small>
 								</div>
 								<br />
 							</xsl:for-each>
