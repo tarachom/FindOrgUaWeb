@@ -20,6 +20,7 @@ namespace FindOrgUa
         //Кількість новин на сторінку
         const int КількістьПодійНаСторінку = 5;
         const int КількістьОсобистостейНаСторінку = 5;
+        const int КількістьПошуковихЗаписівНаСторінку = 10;
 
         #endregion
 
@@ -68,6 +69,8 @@ namespace FindOrgUa
                 app.UseRouting();
                 app.UseSession();
 
+                app.MapGet("/search", Search);
+
                 /* sitemap для новин */
                 app.MapGet("/sitemap-news", SiteMapNews);
 
@@ -100,6 +103,73 @@ namespace FindOrgUa
 
                 app.Run();
             }
+        }
+
+        static async Task Search(HttpContext context)
+        {
+            string xml = "";
+
+            HttpResponse response = context.Response;
+            HttpRequest request = context.Request;
+
+            string ТекстДляПошуку = "";
+            if (request.Query.ContainsKey("search"))
+                ТекстДляПошуку = request.Query["search"].ToString();
+
+            if (string.IsNullOrEmpty(ТекстДляПошуку))
+            {
+                response.StatusCode = 505;
+                return;
+            }
+
+            //Сторінка у межах дати
+            int Сторінка = 1;
+            if (request.Query.ContainsKey("page"))
+                if (!int.TryParse(request.Query["page"].ToString(), out Сторінка))
+                    Сторінка = 1;
+
+            if (Сторінка <= 0)
+            {
+                response.StatusCode = 505;
+                return;
+            }
+
+            long КількістьЗаписів = await ВибіркаКількістьЗаписівДляПошуку(ТекстДляПошуку);
+
+            //Кількість сторінок
+            int pageCount = (int)Math.Ceiling(КількістьЗаписів / (decimal)КількістьПошуковихЗаписівНаСторінку);
+
+            //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
+            if (Сторінка > 1 && КількістьЗаписів < КількістьПошуковихЗаписівНаСторінку * (Сторінка - 1))
+                Сторінка = pageCount;
+
+            if (pageCount > 1)
+            {
+                const int Зміщення = 3;
+                int ЛіваМежа = Сторінка - Зміщення;
+                int ПраваМежа = Сторінка + Зміщення;
+
+                xml += "<pages>";
+                for (int p = 2; p <= pageCount - 1; p++)
+                {
+                    if (p >= ЛіваМежа && p <= ПраваМежа)
+                        xml += $"<page>{p}</page>";
+                }
+                xml += $"<pages_count>{pageCount}</pages_count>";
+                xml += "</pages>";
+            }
+
+            xml += await ВибіркаПошук_ХМЛ(ТекстДляПошуку, Сторінка);
+
+            Dictionary<string, object> args = new()
+            {
+                { "search_text", ТекстДляПошуку },
+                { "page", Сторінка },
+                { "year", DateTime.Now.Year }
+            };
+
+            using (TextWriter? writer = Transform(xml, args, "WebSearch.xslt"))
+                await response.WriteAsync(writer?.ToString() ?? "");
         }
 
         /// <summary>
@@ -225,7 +295,7 @@ namespace FindOrgUa
             //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
             if (Сторінка > 1 && КількістьОсобистостей < КількістьОсобистостейНаСторінку * (Сторінка - 1))
                 Сторінка = pageCount;
-                
+
             if (pageCount > 1)
             {
                 const int Зміщення = 3;
@@ -498,6 +568,98 @@ namespace FindOrgUa
             using (TextWriter? writer = Transform(xml, args, "WebNews.xslt"))
                 await response.WriteAsync(writer?.ToString() ?? "");
         }
+
+        #region Search
+
+        static async ValueTask<long> ВибіркаКількістьЗаписівДляПошуку(string ТекстДляПошуку)
+        {
+            string query = $@"
+SELECT 
+    count(Рег_Пошук.uid) AS Кількість
+FROM 
+    {Пошук_Const.TABLE} AS Рег_Пошук
+WHERE
+    search @@ plainto_tsquery('ukrainian', @ТекстДляПошуку)
+";
+            var recordResult = await Config.Kernel.DataBase.ExecuteSQLScalar(query, new Dictionary<string, object> { { "ТекстДляПошуку", ТекстДляПошуку } });
+            return recordResult == null ? 0 : (long)recordResult;
+        }
+
+        static async ValueTask<string> ВибіркаПошук_ХМЛ(string ТекстДляПошуку, int Сторінка)
+        {
+            string xml = "";
+
+            string query = $@"
+WITH rows AS 
+(
+    SELECT 
+        Рег_Пошук.period AS Період,
+        Рег_Пошук.{Пошук_Const.ВидДокументу} AS ВидДокументу,
+        Рег_Пошук.{Пошук_Const.Заголовок} AS Заголовок,
+        Рег_Пошук.{Пошук_Const.Текст} AS Текст,
+        Рег_Пошук.{Пошук_Const.Код} AS Код
+    FROM 
+        {Пошук_Const.TABLE} AS Рег_Пошук
+    WHERE
+        search @@ plainto_tsquery('ukrainian', @ТекстДляПошуку)
+    ORDER BY
+        Період DESC
+    LIMIT @КількістьНаСторінку 
+    OFFSET @Зміщення
+)
+SELECT
+    Період,
+    ВидДокументу,
+    Заголовок,
+    Код,
+    ts_headline('ukrainian', Текст, plainto_tsquery('ukrainian', @ТекстДляПошуку)) AS Текст
+FROM 
+    rows
+";
+            Dictionary<string, object> paramQuery = new Dictionary<string, object>
+            {
+                { "ТекстДляПошуку", ТекстДляПошуку },
+                { "КількістьНаСторінку", КількістьПошуковихЗаписівНаСторінку },
+                { "Зміщення", КількістьПошуковихЗаписівНаСторінку * (Сторінка - 1) }
+            };
+
+            var recordResult = await Config.Kernel.DataBase.SelectRequestAsync(query, paramQuery);
+            if (recordResult.Result)
+                foreach (var row in recordResult.ListRow)
+                {
+                    xml += "<row>";
+                    foreach (var column in recordResult.ColumnsName)
+                        if (column == "Заголовок" || column == "Текст")
+                            xml += $"<{column}><![CDATA[{row[column]}]]></{column}>";
+                        else
+                            xml += $"<{column}>{row[column]}</{column}>";
+
+                    xml += "</row>";
+                }
+
+            ДодатиІсторіюПошуку(ТекстДляПошуку, Сторінка);
+
+            return xml;
+        }
+
+        /// <summary>
+        /// Запис історії пошуку в таличну частину регістру
+        /// </summary>
+        /// <param name="ТекстДляПошуку">Текст</param>
+        static async void ДодатиІсторіюПошуку(string ТекстДляПошуку, int Сторінка)
+        {
+            Пошук_ПошуковіЗапити_TablePart ПошуковіЗапити = new Пошук_ПошуковіЗапити_TablePart();
+            ПошуковіЗапити.Records.Add(new()
+            {
+                Період = DateTime.Now,
+                Запит = ТекстДляПошуку,
+                Сторінка = Сторінка
+            });
+
+            await ПошуковіЗапити.Save(false);
+        }
+
+        #endregion
 
         #region Personality
 

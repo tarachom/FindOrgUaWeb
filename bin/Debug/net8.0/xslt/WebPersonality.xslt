@@ -83,7 +83,7 @@
 									<a class="nav-link" href="/about.html">Про проект</a>
 								</li>
 							</ul>
-							<form action="/" class="d-flex" method="get">
+							<form action="/watch/service/search/" class="d-flex" method="get">
 								<input name="search" class="form-control me-2" type="text" placeholder="Пошук" />
 								<input class="btn btn-primary" type="submit" value="Пошук" />
 							</form>
