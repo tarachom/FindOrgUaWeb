@@ -87,7 +87,29 @@
 						<div class="col-sm-8">
 							<h3>Про проект</h3>
 
-							<xsl:value-of select="$text" />
+							<p>Новини, відео, аналітика, довідкова інформація</p>
+							<p>Україна, м. Львів</p>
+							<p>YouTube канал: <a href="https://www.youtube.com/@FindOrgUa"><img src="/favicon.ico" /></a><xsl:text> </xsl:text><a href="https://www.youtube.com/@FindOrgUa">FindOrgUa</a></p>
+							<br/><br/>
+
+							<xsl:if test="normalize-space($text) != ''">
+								<p>
+									<b>Повідомлення відправлено:</b><br/>
+									<small>
+										<xsl:value-of select="normalize-space($text)" />
+									</small>
+								</p>
+							</xsl:if>
+
+							<form action="/watch/service/feedback" class="" method="post">
+								<p>
+									<label for="msg">Повідомлення:</label>
+									<textarea id="msg" name="msg" class="form-control" cols="40" rows="5"></textarea>
+								</p>
+								<p>
+									<input class="btn btn-primary" type="submit" value="Надіслати" />
+								</p>
+							</form>
 						</div>
 
 						<div class="col-sm-2">

@@ -125,22 +125,25 @@ namespace FindOrgUa
             HttpResponse response = context.Response;
             HttpRequest request = context.Request;
 
-            string Текст = "";
+            string Повідомлення = "";
             if (request.Form.ContainsKey("msg"))
-                Текст = request.Form["msg"].ToString();
+                Повідомлення = request.Form["msg"].ToString();
 
-            //Запис в регістр
-            ЗворотнийЗвязок_RecordsSet зворотнийЗвязок_RecordsSet = new();
-            зворотнийЗвязок_RecordsSet.Records.Add(new()
+            if (!string.IsNullOrEmpty(Повідомлення))
             {
-                Повідомлення = Текст
-            });
-            
-            await зворотнийЗвязок_RecordsSet.Save(DateTime.Now, Guid.NewGuid());
+                //Запис в регістр
+                ЗворотнийЗвязок_RecordsSet зворотнийЗвязок_RecordsSet = new();
+                зворотнийЗвязок_RecordsSet.Records.Add(new()
+                {
+                    Повідомлення = Повідомлення
+                });
+
+                await зворотнийЗвязок_RecordsSet.Save(DateTime.Now, Guid.NewGuid());
+            }
 
             Dictionary<string, object> args = new()
             {
-                { "text", Текст },
+                { "text", Повідомлення },
                 { "year", DateTime.Now.Year }
             };
 
