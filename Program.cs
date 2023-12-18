@@ -50,6 +50,16 @@ namespace FindOrgUa
                     Console.WriteLine(@"Error: Відсутня таблиця tab_constants.");
                     return;
                 }
+
+                //Реєстрація сесії
+                if (!await Config.Kernel.UserLogIn("web", ""))
+                {
+                    Console.WriteLine(@"Error: Невірний логін або пароль");
+                    return;
+                }
+
+                //Запуск фонових задач
+                Config.StartBackgroundTask();
             }
 
             //WEB
