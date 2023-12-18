@@ -9,6 +9,7 @@ using FindOrgUa_1_0;
 using FindOrgUa_1_0.Константи;
 using FindOrgUa_1_0.Довідники;
 using FindOrgUa_1_0.Документи;
+using FindOrgUa_1_0.РегістриВідомостей;
 using FindOrgUa_1_0.РегістриНакопичення;
 
 namespace FindOrgUa
@@ -111,8 +112,40 @@ namespace FindOrgUa
                 /* для перегляду однієї особистості */
                 app.MapGet("/personality/code-{code}", PersonalityItem);
 
+                app.MapPost("/feedback", Feedback);
+
                 app.Run();
             }
+        }
+
+        static async Task Feedback(HttpContext context)
+        {
+            string xml = "";
+
+            HttpResponse response = context.Response;
+            HttpRequest request = context.Request;
+
+            string Текст = "";
+            if (request.Form.ContainsKey("msg"))
+                Текст = request.Form["msg"].ToString();
+
+            //Запис в регістр
+            ЗворотнийЗвязок_RecordsSet зворотнийЗвязок_RecordsSet = new();
+            зворотнийЗвязок_RecordsSet.Records.Add(new()
+            {
+                Повідомлення = Текст
+            });
+            
+            await зворотнийЗвязок_RecordsSet.Save(DateTime.Now, Guid.NewGuid());
+
+            Dictionary<string, object> args = new()
+            {
+                { "text", Текст },
+                { "year", DateTime.Now.Year }
+            };
+
+            using (TextWriter? writer = Transform(xml, args, "WebFeedback.xslt"))
+                await response.WriteAsync(writer?.ToString() ?? "");
         }
 
         static async Task Search(HttpContext context)
