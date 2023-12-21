@@ -96,9 +96,6 @@
 									<a class="nav-link active" href="/watch/service/news">Новини</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" href="/tg/">Телеграм-канали</a>
-								</li>
-								<li class="nav-item">
 									<a class="nav-link" href="/watch/service/personality">Особистості</a>
 								</li>
 								<li class="nav-item">
