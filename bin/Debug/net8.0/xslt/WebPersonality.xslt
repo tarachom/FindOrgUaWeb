@@ -35,6 +35,18 @@
 				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
 
+				<link rel="canonical">
+					<xsl:attribute name="href">
+						<xsl:text>https://find.org.ua/watch/service/personality/</xsl:text>
+						<xsl:if test="$variant_page = 'personality' and number($page) &gt; 1">
+							<xsl:value-of select="$page" />
+						</xsl:if>
+						<xsl:if test="$variant_page = 'personality_item'">
+							<xsl:value-of select="concat('code-', $code)" />
+						</xsl:if>
+					</xsl:attribute>
+				</link>
+
 				<!-- Google tag (gtag.js) -->
 				<!--
 				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-LQD1F0WX92"></script>
@@ -162,14 +174,18 @@
 									<xsl:if test="normalize-space(КількістьЗгадок) != ''">
 										<p>
 											<xsl:text>Пов'язаних новин: </xsl:text>
-											<span class="badge rounded-pill bg-warning text-dark">
-												<xsl:if test="$variant_page = 'personality'">
-													<a href="/watch/service/personality/code-{КодОсобистості}"><xsl:value-of select="КількістьЗгадок"/></a>
-												</xsl:if>
-												<xsl:if test="$variant_page = 'personality_item'">
+											<xsl:if test="$variant_page = 'personality'">
+												<a href="/watch/service/personality/code-{КодОсобистості}">
+													<span class="badge rounded-pill bg-warning text-dark">
+														<xsl:value-of select="КількістьЗгадок"/>
+													</span>
+												</a>
+											</xsl:if>
+											<xsl:if test="$variant_page = 'personality_item'">
+												<span class="badge rounded-pill bg-warning text-dark">
 													<xsl:value-of select="КількістьЗгадок"/>
-												</xsl:if>
-											</span>
+												</span>
+											</xsl:if>
 										</p>
 										<!-- Список пов'язаних новин -->
 										<xsl:for-each select="../related_news">

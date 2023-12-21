@@ -25,6 +25,7 @@
 				<meta http-equiv="Pragma" content="no-cache" />
 				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
+				<link rel="canonical" href="https://find.org.ua/watch/service/search" />
 
 				<!-- Google tag (gtag.js) -->
 				<!--

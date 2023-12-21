@@ -42,17 +42,20 @@
 				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
 
-				<xsl:if test="$variant_page = 'news'">
-					<link rel="canonical">
-						<xsl:attribute name="href">
-							<xsl:text>https://find.org.ua/watch/service/news/</xsl:text>
+				<link rel="canonical">
+					<xsl:attribute name="href">
+						<xsl:text>https://find.org.ua/watch/service/news/</xsl:text>
+						<xsl:if test="$variant_page = 'news'">
 							<xsl:value-of select="concat($date, '/')" />
 							<xsl:if test="number($page) &gt; 1">
 								<xsl:value-of select="$page" />
 							</xsl:if>
-						</xsl:attribute>
-					</link>
-				</xsl:if>
+						</xsl:if>
+						<xsl:if test="$variant_page = 'news_item'">
+							<xsl:value-of select="concat('code-', $code)" />
+						</xsl:if>
+					</xsl:attribute>
+				</link>
 
 				<!-- Google tag (gtag.js) -->
 				<!--
