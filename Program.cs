@@ -112,6 +112,9 @@ namespace FindOrgUa
                 /* для перегляду однієї особистості */
                 app.MapGet("/personality/code-{code}", PersonalityItem);
 
+                /* Про проект */
+                app.MapGet("/about", About);
+
                 /* Зворотній зв'язок */
                 app.MapPost("/feedback", Feedback);
 
@@ -119,6 +122,21 @@ namespace FindOrgUa
             }
         }
 
+        /// <summary>
+        /// Про проект
+        /// </summary>
+        static async Task About(HttpContext context)
+        {
+            HttpResponse response = context.Response;
+            Dictionary<string, object> args = new() { { "year", DateTime.Now.Year } };
+
+            using (TextWriter? writer = Transform("", args, "WebFeedback.xslt"))
+                await response.WriteAsync(writer?.ToString() ?? "");
+        }
+
+        /// <summary>
+        /// Зворотній зв'язок
+        /// </summary>
         static async Task Feedback(HttpContext context)
         {
             string xml = "";
@@ -152,6 +170,9 @@ namespace FindOrgUa
                 await response.WriteAsync(writer?.ToString() ?? "");
         }
 
+        /// <summary>
+        /// Пошук
+        /// </summary>
         static async Task Search(HttpContext context)
         {
             string xml = "";
@@ -182,7 +203,7 @@ namespace FindOrgUa
                 //Кількість сторінок
                 int pageCount = (int)Math.Ceiling(КількістьЗаписів / (decimal)КількістьПошуковихЗаписівНаСторінку);
 
-                //Якщо події є, та задана сторінка, але сторінка виходить за межі то сторінка стає максимальною
+                //Якщо сторінка виходить за межі то сторінка стає максимальною
                 if (Сторінка > 1 && КількістьЗаписів < КількістьПошуковихЗаписівНаСторінку * (Сторінка - 1))
                     Сторінка = pageCount;
 

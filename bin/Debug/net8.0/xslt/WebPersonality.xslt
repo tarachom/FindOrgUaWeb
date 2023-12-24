@@ -76,7 +76,7 @@
 									<a class="nav-link active" href="/watch/service/personality">Особистості</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" href="/watch/service/feedback">Про проект</a>
+									<a class="nav-link" href="/watch/service/about">Про проект</a>
 								</li>
 							</ul>
 							<form action="/watch/service/search" class="d-flex" method="get">
