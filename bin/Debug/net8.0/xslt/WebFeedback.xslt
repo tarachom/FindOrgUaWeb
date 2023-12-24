@@ -19,20 +19,8 @@
 				<link rel="stylesheet" href="/bootstrap/bootstrap.min.css" />
 				<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 				<meta http-equiv="Pragma" content="no-cache" />
-				<script async="async" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8744330757055064" crossorigin="anonymous"></script>
 				<script src="/bootstrap/bootstrap.min.js"></script>
 				<link rel="canonical" href="https://find.org.ua/watch/service/feedback" />
-
-				<!-- Google tag (gtag.js) -->
-				<!--
-				<script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-LQD1F0WX92"></script>
-				<script>
-				window.dataLayer = window.dataLayer || [];
-				function gtag(){dataLayer.push(arguments);}
-				gtag('js', new Date());
-				gtag('config', 'G-LQD1F0WX92');
-				</script>
-				-->
 			</head>
 
 			<body>
