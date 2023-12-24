@@ -112,6 +112,7 @@ namespace FindOrgUa
                 /* для перегляду однієї особистості */
                 app.MapGet("/personality/code-{code}", PersonalityItem);
 
+                /* Зворотній зв'язок */
                 app.MapPost("/feedback", Feedback);
 
                 app.Run();
