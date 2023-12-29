@@ -31,10 +31,8 @@ namespace FindOrgUa
             {
                 Config.Kernel = new Kernel();
 
-                //Підключення до бази даних та завантаження конфігурації
-                bool result = await Config.Kernel.Open(
-                    "/home/tarachom/Projects/FindOrgUa/bin/Debug/net8.0/Confa.xml",
-                    "localhost", "postgres", "1", 5432, "find_org_ua");
+                //Підключення до бази даних без завантаження конфігурації
+                bool result = await Config.Kernel.OpenOnlyDataBase("localhost", "postgres", "1", 5432, "find_org_ua");
 
                 if (!result)
                 {
