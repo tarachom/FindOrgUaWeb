@@ -284,8 +284,6 @@ namespace FindOrgUa
         /// </summary>
         static async Task PersonalityItem(HttpContext context, string code)
         {
-            string xml = "";
-
             var response = context.Response;
 
             //Перевірка переданих параметрів
@@ -315,8 +313,7 @@ namespace FindOrgUa
                 return;
             }
 
-            xml = await ВибіркаОднієїОсобистості_ХМЛ(особистості_Pointer);
-
+            string xml = await ВибіркаОднієїОсобистості_ХМЛ(особистості_Pointer);
             Dictionary<string, object> args = new()
             {
                 { "page", 1 },
