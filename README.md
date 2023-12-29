@@ -3,3 +3,9 @@
 
 Даний вебсервер віддає контент основному вебсерверу на [Erlang](https://github.com/tarachom/ErlangWeb)<br/>
 Працює по протоколу http і привязаний до локальної машини (http://localhost:8082)
+Віддає зразу готовий html контент, а все інше бере на себе Erlang.
+
+Приклади:
+
+    Новини - http://localhost:8082/news
+    Особистості - http://localhost:8082/personality
