@@ -15,7 +15,8 @@
 
 *.sh
 
-/bin/Debug/net8.0
+bin/Debug/net8.0
+obj
 
 FindOrgUa
 FindOrgUaWeb
