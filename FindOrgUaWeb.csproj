@@ -11,4 +11,8 @@
     <ProjectReference Include="..\FindOrgUa\FindOrgUa.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="xslt/*.xslt" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
 </Project>

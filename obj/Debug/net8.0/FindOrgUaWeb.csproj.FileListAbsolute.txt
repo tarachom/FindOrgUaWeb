@@ -45,3 +45,7 @@
 /home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/FindOrgUa.dll
 /home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/FindOrgUa.pdb
 /home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/Configurator3.pdb
+/home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/xslt/WebFeedback.xslt
+/home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/xslt/WebNews.xslt
+/home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/xslt/WebPersonality.xslt
+/home/tarachom/Projects/FindOrgUaWeb/bin/Debug/net8.0/xslt/WebSearch.xslt
