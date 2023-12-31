@@ -1,2 +1,0 @@
-Файли у даному каталозі скопійовані з основного проекту https://github.com/tarachom/FindOrgUaSite
-Для копіювання запустити скрипт sh build.sh
