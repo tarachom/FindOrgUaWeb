@@ -15,4 +15,5 @@
     git clone https://github.com/tarachom/FindOrgUa.git
     git clone https://github.com/tarachom/Configurator3.git
     git clone https://github.com/tarachom/AccountingSoftwareLib.git
-
+    
+    dotnet build
