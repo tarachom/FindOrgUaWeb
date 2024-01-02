@@ -8,3 +8,11 @@
 
     Новини - http://localhost:8082/news
     Особистості - http://localhost:8082/personality
+
+Для запуску потрібно клонувати репозиторії:
+
+    git clone https://github.com/tarachom/FindOrgUaWeb.git
+    git clone https://github.com/tarachom/FindOrgUa.git
+    git clone https://github.com/tarachom/Configurator3.git
+    git clone https://github.com/tarachom/AccountingSoftwareLib.git
+
