@@ -35,12 +35,12 @@
 				<script src="/bootstrap/bootstrap.min.js"></script>
 				<link rel="canonical">
 					<xsl:attribute name="href">
-						<xsl:text>https://find.org.ua/watch/service/personality/</xsl:text>
+						<xsl:text>https://find.org.ua/watch/service/personality</xsl:text>
 						<xsl:if test="$variant_page = 'personality' and number($page) &gt; 1">
-							<xsl:value-of select="$page" />
+							<xsl:value-of select="concat('/', $page)" />
 						</xsl:if>
 						<xsl:if test="$variant_page = 'personality_item'">
-							<xsl:value-of select="concat('code-', $code)" />
+							<xsl:value-of select="concat('/code-', $code)" />
 						</xsl:if>
 					</xsl:attribute>
 				</link>

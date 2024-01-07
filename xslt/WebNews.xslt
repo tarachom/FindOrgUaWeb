@@ -42,15 +42,15 @@
 				<script src="/bootstrap/bootstrap.min.js"></script>
 				<link rel="canonical">
 					<xsl:attribute name="href">
-						<xsl:text>https://find.org.ua/watch/service/news/</xsl:text>
+						<xsl:text>https://find.org.ua/watch/service/news</xsl:text>
 						<xsl:if test="$variant_page = 'news'">
-							<xsl:value-of select="concat($date, '/')" />
+							<xsl:value-of select="concat('/', $date)" />
 							<xsl:if test="number($page) &gt; 1">
-								<xsl:value-of select="$page" />
+								<xsl:value-of select="concat('/', $page)" />
 							</xsl:if>
 						</xsl:if>
 						<xsl:if test="$variant_page = 'news_item'">
-							<xsl:value-of select="concat('code-', $code)" />
+							<xsl:value-of select="concat('/code-', $code)" />
 						</xsl:if>
 					</xsl:attribute>
 				</link>

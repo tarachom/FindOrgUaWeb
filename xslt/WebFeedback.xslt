@@ -20,7 +20,7 @@
 				<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 				<meta http-equiv="Pragma" content="no-cache" />
 				<script src="/bootstrap/bootstrap.min.js"></script>
-				<link rel="canonical" href="https://find.org.ua/watch/service/feedback" />
+				<link rel="canonical" href="https://find.org.ua/watch/service/about" />
 			</head>
 
 			<body>
