@@ -74,6 +74,7 @@
 
 				<nav class="navbar navbar-expand-sm bg-light">
 					<div class="container-fluid">
+						<a class="navbar-brand" href="/" title="Головна"><img alt="Головна" src="/favicon.ico" /></a>
 						<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
 							<span class="navbar-toggler-icon"></span>
 						</button>
@@ -296,7 +297,16 @@
 				</div>
 
 				<div class="mt-5 p-4 bg-light text-center">
-					<p><xsl:value-of select="$year" /> рік</p>
+					<h6>Проекти</h6>
+					<p>
+						<img alt="Програми для обліку" src="https://accounting.org.ua/favicon.ico" />
+						<xsl:text> </xsl:text>
+						<a target="_blank" href="https://accounting.org.ua/" title="Українські програми для обліку">
+							<xsl:text>Програми для обліку</xsl:text>
+						</a>
+						<xsl:text> - українське програмне забезпечення з відкритим кодом</xsl:text>
+					</p>
+					<p>© FIND.org.ua - <xsl:value-of select="$year" /></p>
 				</div>
 
 			</body>
